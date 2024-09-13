@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head></head>
+
+<script>
+	const socket = new WebSocket('ws://192.168.1.56:8000/ws/keypad/');
+	socket.onmessage = function(e) {
+		const data = JSON.parse(e.data);
+		console.log('message: ', data.message);
+	}
+</script>
+
+<body>
+	Keypad
+</body>
+</html>
