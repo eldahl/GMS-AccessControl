@@ -1,4 +1,4 @@
-#!/Users/esbenchristensen/Projects/GMS-AccessControl/examples/KeypadPy/venv/bin/python3.12
+#!/home/pi/GMS-AccessControl/examples/KeypadPy/venv/bin/python
 
 # Copyright (c) 2019-2024, Emmanuel Blot <emmanuel.blot@free.fr>
 # All rights reserved.

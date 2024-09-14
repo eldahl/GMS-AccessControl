@@ -4,10 +4,20 @@
 <head></head>
 
 <script>
+	function sleep(ms) {
+		return new Promise(resolve => setTimeout(resolve, ms));
+	}
+
 	const socket = new WebSocket('ws://192.168.1.56:8000/ws/keypad/');
 	socket.onmessage = function(e) {
 		const data = JSON.parse(e.data);
-		console.log('message: ', data.message);
+		console.log('keys: ', data.keys);
+	}
+	socket.onopen = async function(e) {
+		while(true) {
+			await sleep(3000);
+			socket.send("a");
+		}
 	}
 </script>
 

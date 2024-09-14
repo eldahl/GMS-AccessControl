@@ -3,6 +3,15 @@ import board
 import digitalio
 import adafruit_matrixkeypad
 
+# (·) F D6
+# (·) E D5
+# (·) D D21
+# (·) B D16
+# (·) C D20
+# (·) A D12
+# (·) G D13
+# (·) H D19
+
 # Define your row and column pins
 rows = [digitalio.DigitalInOut(x) for x in (board.D5, board.D6, board.D13, board.D19)]
 cols = [digitalio.DigitalInOut(x) for x in (board.D12, board.D16, board.D20, board.D21)]

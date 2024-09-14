@@ -1,3 +1,10 @@
+# General
 .DS_STORE
+__pycache__
 
+# Virtual environements
+venv/
 WebInterface/WIenv
+
+# Web Interface
+db.sqlite3

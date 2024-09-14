@@ -1,4 +1,4 @@
-#!/Users/esbenchristensen/Projects/GMS-AccessControl/examples/KeypadPy/venv/bin/python3.12
+#!/home/pi/GMS-AccessControl/examples/KeypadPy/venv/bin/python
 
 """Simple FTDI EEPROM configurator.
 """
