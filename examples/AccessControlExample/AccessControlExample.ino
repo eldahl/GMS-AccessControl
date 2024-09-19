@@ -14,13 +14,21 @@ void setup() {
   Serial.println(F("Access Control Example v0.1"));
 }
 
-void loop () {
-  if (Serial.read() == 'o')
-    AABEN_LUK();
-}
-
 int a=1;
 int b=0;
+
+void loop () {
+  char input = Serial.read();
+  if (input == 'o')
+    AABEN_LUK();
+  else if(input == 'i') {
+    if(a == 0 && b == 1)
+      Serial.println("Open");
+    else
+      Serial.println("Closed");
+  }
+}
+
 void AABEN_LUK() {
   unsigned long tid = millis();
   digitalWrite(A4,a);
