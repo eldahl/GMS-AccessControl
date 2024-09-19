@@ -8,3 +8,4 @@ WebInterface/WIenv
 
 # Web Interface
 db.sqlite3
+eeprom.bin

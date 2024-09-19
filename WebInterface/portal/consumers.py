@@ -12,13 +12,13 @@ class KeypadConsumer(AsyncWebsocketConsumer):
         pass
 
     async def receive(self, text_data):
-        if not apps.lock_handler:
+        if not apps.keypad_handler:
             print("no lock handler")
             return
 
-        with apps.lock_handler.lock:
-            keys_copy = apps.lock_handler.keys.copy();
-            print("keys from lock: ", apps.lock_handler.keys);
+        with apps.keypad_handler.lock:
+            keys_copy = apps.keypad_handler.keys.copy();
+            print("keys from lock: ", apps.keypad_handler.keys);
 
         print("keys copy", keys_copy);
 

@@ -1,3 +1,5 @@
+from django.db import connection
+
 import threading
 import time
 
@@ -6,6 +8,7 @@ import board
 import digitalio
 import adafruit_matrixkeypad
 
+# Keypad Pins
 # (·) F D6
 # (·) E D5
 # (·) D D21
@@ -15,7 +18,7 @@ import adafruit_matrixkeypad
 # (·) G D13
 # (·) H D19
 
-class LockHandler():
+class KeypadHandler():
 
     def __init__(self):
         # Define your row and column pins
@@ -36,7 +39,10 @@ class LockHandler():
         self.keys = []
         self.lock = threading.Lock()
 
-    def lock_handler_entry(self):
+    def keypad_handler_entry(self):
+        # Django starts a database connection for each new thread, so we start by closing that.
+        connection.close()
+
         previous_keys = []
 
         while True:
@@ -56,8 +62,8 @@ class LockHandler():
                     previous_keys = []  # Clear previous keys if no new input
 
 
-    def start_lock_handler(self):
-        self.lock_handler_thread = threading.Thread(target=self.lock_handler_entry, daemon=True)
-        self.lock_handler_thread.start()
-        print("starting lock handler thread")
+    def start_keypad_handler(self):
+        self.keypad_handler_thread = threading.Thread(target=self.keypad_handler_entry, daemon=True)
+        self.keypad_handler_thread.start()
+        print("starting keypad handler thread")
 

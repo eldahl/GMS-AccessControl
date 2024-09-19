@@ -1,14 +1,14 @@
 from django.apps import AppConfig
-from .lock_handler import LockHandler
+from .keypad_handler import KeypadHandler
 
-lock_handler = {}
+keypad_handler = {}
 
 class PortalConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'portal'
     
     def ready(self):
-        global lock_handler
+        global keypad_handler
         print("Starting lock handler")
-        lock_handler = LockHandler()
-        lock_handler.start_lock_handler()
+        keypad_handler = KeypadHandler()
+        keypad_handler.start_keypad_handler()
