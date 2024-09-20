@@ -2,21 +2,25 @@ from django.db import connection
 
 import threading
 import time
+import queue
 
-#import time
 import board
 import digitalio
 import adafruit_matrixkeypad
 
-# Keypad Pins
-# (·) F D6
-# (·) E D5
-# (·) D D21
-# (·) B D16
-# (·) C D20
-# (·) A D12
-# (·) G D13
-# (·) H D19
+############################
+#   Keypad to RPi pinput   #
+############################
+# [Keypad Pins] [RPi GPIO] #
+#    (·) F         D6      #
+#    (·) E         D5      #
+#    (·) D         D21     #
+#    (·) B         D16     #
+#    (·) C         D20     #
+#    (·) A         D12     #
+#    (·) G         D13     #
+#    (·) H         D19     #
+############################
 
 class KeypadHandler():
 
@@ -35,35 +39,34 @@ class KeypadHandler():
 
         # Initialize the keypad
         self.keypad = adafruit_matrixkeypad.Matrix_Keypad(self.rows, self.cols, self.keysMatrix)
-
-        self.keys = []
-        self.lock = threading.Lock()
+        self.keysQueue = queue.Queue(maxsize=16)
 
     def keypad_handler_entry(self):
         # Django starts a database connection for each new thread, so we start by closing that.
         connection.close()
 
-        previous_keys = []
+        pressed_keys = []
 
         while True:
-            time.sleep(2)
-            with self.lock: 
-                # Check for key presses
-                current_keys = self.keypad.pressed_keys
-                print("Raw from keypad: ", current_keys)
-                
-                if current_keys and current_keys != previous_keys:
-                    # Update keys only if there is a new key press and it's different from the previous state
-                    self.keys = current_keys
-                    previous_keys = current_keys
-                    print("Key Pressed: ", self.keys)
-                elif not current_keys:
-                    # Optionally retain the last pressed key if no key is currently pressed
-                    previous_keys = []  # Clear previous keys if no new input
+            time.sleep(0.1)
+            # Check for key presses
+            current_keys = self.keypad.pressed_keys
+            #print("Raw from keypad: ", current_keys)
+            
+            if pressed_keys: # Key is held pressed
+                if not current_keys: # Key press released
+                    # Put the keys pressed into the queue only if there is a new key press 
+                    self.keysQueue.put(pressed_keys)
+                    # Reset pressed_keys
+                    pressed_keys = []
 
+            if current_keys:
+                pressed_keys = current_keys
+
+                #print("Key Pressed: ", current_keys)
 
     def start_keypad_handler(self):
         self.keypad_handler_thread = threading.Thread(target=self.keypad_handler_entry, daemon=True)
         self.keypad_handler_thread.start()
-        print("starting keypad handler thread")
+        print("Starting Keypad handler thread...")
 
