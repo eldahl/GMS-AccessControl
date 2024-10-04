@@ -9,10 +9,10 @@ class Coordinator():
     
     def __init__(self):
         self.keypad_handler = KeypadHandler()
-        #self.rfid_handler = RfidHandler()
+        self.rfid_handler = RfidHandler()
 
         self.keypad_handler.start_keypad_handler()
-        #self.rfid_handler.start_rfid_handler()
+        self.rfid_handler.start_rfid_handler()
     
     def start_coordinator(self):
         self.coordinator_thread = threading.Thread(target=self.coordinator_loop, daemon=True)

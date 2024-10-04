@@ -4,30 +4,32 @@ import threading
 import time
 import queue
 
-import board
+import RPi.GPIO as GPIO
 import digitalio
 import adafruit_matrixkeypad
 
 ############################
 #   Keypad to RPi pinput   #
 ############################
-# [Keypad Pins] [RPi GPIO] #
-#    (·) F         D6      #
-#    (·) E         D5      #
-#    (·) D         D21     #
-#    (·) B         D16     #
-#    (·) C         D20     #
-#    (·) A         D12     #
-#    (·) G         D13     #
-#    (·) H         D19     #
-############################
+# [Keypad Pins] [RPi BCM(GPIO)] [RPi Pin] #
+#    (·) F            6             31    #
+#    (·) E            5             29    #
+#    (·) D            21            40    #
+#    (·) B            16            36    #
+#    (·) C            20            38    #
+#    (·) A            12            32    #
+#    (·) G            13            33    #
+#    (·) H            19            35    #
+###########################################
 
 class KeypadHandler():
 
     def __init__(self):
+        GPIO.setmode(GPIO.BOARD)
+
         # Define your row and column pins
-        self.rows = [digitalio.DigitalInOut(x) for x in (board.D5, board.D6, board.D13, board.D19)]
-        self.cols = [digitalio.DigitalInOut(x) for x in (board.D12, board.D16, board.D20, board.D21)]
+        self.rows = [digitalio.DigitalInOut(x) for x in (29, 31, 33, 35)]
+        self.cols = [digitalio.DigitalInOut(x) for x in (32, 36, 38, 40)]
 
         # Define the keys on the keypad
         self.keysMatrix = [

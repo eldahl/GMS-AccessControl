@@ -5,6 +5,7 @@ import time
 import sys
 import os
 import traceback
+import threading
 from django.db import connection
 
 ##################################
@@ -59,8 +60,6 @@ class RfidHandler():
         # Set up GPIO numbering
         GPIO.setmode(GPIO.BOARD)  # Use GPIO.BCM if you prefer BCM numbering
 
-        RST_PIN = 22
-        
         # Global variables
         self.programMode = False
         self.successRead = False
@@ -73,69 +72,64 @@ class RfidHandler():
             self.rfid_handler_thread.start();
             print("Starting RFID-RC522 handler thread...")
 
-    def monitorWipeButton(self, interval):
-        start_time = time.time()
-        while (time.time() - start_time) < interval:
-            time.sleep(0.1)
-        return True
-
     def getID(self):
-        (status, TagType) = self.MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
+        # Make request
+        (status, TagType) = self.MIFAREReader.MFRC522_Request(self.MIFAREReader.PICC_REQIDL)
         if status != self.MIFAREReader.MI_OK:
             return False
+        # Avoid multiple chips at once
         (status, uid) = self.MIFAREReader.MFRC522_Anticoll()
         if status != self.MIFAREReader.MI_OK:
             return False
+        
+        # Successfully read chip!
+        self.readCard = uid[0:4] # Store in self.readCard
         print("Scanned PICC's UID:")
-        self.readCard = uid[0:4]
-        print("%02X%02X%02X%02X" % (self.readCard[0], self.readCard[1], self.readCard[2], self.readCard[3]))
+        print("%02X %02X %02X %02X" % (self.readCard[0], self.readCard[1], self.readCard[2], self.readCard[3]))
         self.MIFAREReader.MFRC522_SelectTag(uid)
         self.MIFAREReader.MFRC522_StopCrypto1()
         return True
 
     def isMaster(self, test):
-        return checkTwo(test, masterCard)
+        return test == self.masterCard
 
-    def checkTwo(self, a, b):
-        return a == b
-
-    def findID(self, find):
+    def findIDInEEPROM(self, find):
         count = self.eeprom.read(0)
         # Bounds checking for 'eeprom' size
         if count > self.MAX_IDS or count == 0xFF:
             count = 0
             self.epprom.write(0, 0)
         for i in range(1, count + 1):
-            self.readID(i)
-            if checkTwo(find, self.storedCard):
+            self.readIDFromEEPROM(i)
+            if find == self.storedCard:
                 return True
         return False
 
-    def readID(self, number):
+    def readIDFromEEPROM(self, number):
         start = (number * 4) + 2
         self.storedCard = [self.eeprom.read(start + i) for i in range(4)]
 
-    def writeID(self, a):
-        if not findID(a):
+    def writeIDToEEPROM(self, a):
+        if not self.findIDInEEPROM(a):
             num = self.eeprom.read(0)
             start = (num * 4) + 6
             num += 1
             self.eeprom.write(0, num)
             for j in range(4):
                 self.eeprom.write(start + j, a[j])
-            self.successWrite()
+            #self.successWrite()
             print("Successfully added ID record to EEPROM")
         else:
-            self.failedWrite()
+            #self.failedWrite()
             print("Failed! ID already exists or EEPROM error")
 
-    def deleteID(self, a):
-        if not findID(a):
-            self.failedWrite()
+    def deleteIDFromEEPROM(self, a):
+        if not self.findIDInEEPROM(a):
+            #self.failedWrite()
             print("Failed! ID not found or EEPROM error")
         else:
             num = self.eeprom.read(0)
-            slot = self.findIDSLOT(a)
+            slot = self.findIDSlot(a)
             start = (slot * 4) + 2
             looping = ((num - slot) * 4)
             num -= 1
@@ -144,18 +138,18 @@ class RfidHandler():
                 self.eeprom.write(start + j, self.eeprom.read(start + 4 + j))
             for k in range(4):
                 self.eeprom.write(start + looping + k, 0)
-            self.successDelete()
+            #self.successDelete()
             print("Successfully removed ID record from EEPROM")
 
-    def findIDSLOT(self, find):
+    def findIDSlot(self, find):
         count = self.eeprom.read(0)
         for i in range(1, count + 1):
-            readID(i)
-            if checkTwo(find, self.storedCard):
+            self.readIDFromEEPROM(i)
+            if find == self.storedCard:
                 return i
         return -1
 
-    def rfid_handler_entry():
+    def rfid_handler_entry(self):
         # Django starts a database connection for each new thread, so we start by closing that.
         connection.close()
 
@@ -163,7 +157,7 @@ class RfidHandler():
             print("No Master Card Defined")
             print("Scan a PICC to Define as Master Card")
             while True:
-                successRead = getID()
+                successRead = self.getID()
                 if successRead:
                     break
             for j in range(4):
@@ -182,58 +176,46 @@ class RfidHandler():
 
         try:
             while True:
+                # Keep reading until chip is read
                 successRead = False
                 while not successRead:
-                    successRead = getID()
-                    #if programMode:
-                        #cycleLeds()
-                    #else:
-                        #normalModeOn()
+                    successRead = self.getID()
                     time.sleep(0.5)
-                    #if GPIO.input(WIPE_BUTTON_PIN) == GPIO.LOW:
-                       # print("Wipe Button Pressed")
-                       # print("Master Card will be Erased! in 10 seconds")
-                       # buttonState = monitorWipeButton(10)
-                        #if buttonState and GPIO.input(WIPE_BUTTON_PIN) == GPIO.LOW:
-                        #    eeprom.write(1, 0)
-                        #    print("Master Card Erased from device")
-                        #    print("Please reset to re-program Master Card")
-                        #    sys.exit()
-                        #else:
-                        #    print("Master Card Erase Cancelled")
-                if programMode:
-                    if isMaster(readCard):
+    
+                # If master chip was read
+                if self.programMode:
+                    if self.isMaster(self.readCard):
                         print("Master Card Scanned")
                         print("Exiting Program Mode")
                         print("-----------------------------")
-                        programMode = False
+                        self.programMode = False
                     else:
-                        if findID(readCard):
+                        if self.findIDInEEPROM(self.readCard):
                             print("Known PICC detected, removing...")
-                            deleteID(readCard)
+                            self.deleteIDFromEEPROM(self.readCard)
                             print("-----------------------------")
                             print("Scan a PICC to ADD or REMOVE to EEPROM")
                         else:
                             print("Unknown PICC detected, adding...")
-                            writeID(readCard)
+                            self.writeIDToEEPROM(self.readCard)
                             print("-----------------------------")
                             print("Scan a PICC to ADD or REMOVE to EEPROM")
                 else:
-                    if isMaster(readCard):
-                        programMode = True
+                    if self.isMaster(self.readCard):
+                        self.programMode = True
                         print("Hello Master - Entered Program Mode")
-                        count = eeprom.read(0)
+                        count = self.eeprom.read(0)
                         print(f"I have {count} record(s) on EEPROM")
                         print("Scan a PICC to ADD or REMOVE to EEPROM")
                         print("Scan Master Card again to Exit Program Mode")
                         print("-----------------------------")
                     else:
-                        if findID(readCard):
+                        if self.findIDInEEPROM(self.readCard):
                             print("Access Granted")
-                            granted(3)
+                            #granted(3)
                         else:
                             print("Access Denied")
-                            denied()
+                            #denied()
         except KeyboardInterrupt:
             GPIO.cleanup()
             sys.exit()
