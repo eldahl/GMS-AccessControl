@@ -1,5 +1,5 @@
 from django.apps import AppConfig
-from .coordinator import Coordinator
+from .hardwareHandler import Coordinator
 
 hw_coordinator = {}
 
@@ -11,4 +11,3 @@ class PortalConfig(AppConfig):
         global hw_coordinator
         print("Starting Hardware Coordinator...")
         hw_coordinator = Coordinator()
-        hw_coordinator.start_coordinator()

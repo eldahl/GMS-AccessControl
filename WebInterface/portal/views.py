@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
 
+from .models import LogEntry
+
 def portal(request):
     template = loader.get_template('test.html')
     testVar = "Phillip Dupont"
@@ -17,28 +19,8 @@ def addLog(request):
 def logs(request):
     template = loader.get_template('logs.html')
 
-    logs = [
-        {
-            'timestamp': "10-10-2021",
-            'level': 1,
-            'message': "test",
-        },
-        {
-            'timestamp': "10-10-2021",
-            'level': 1,
-            'message': "test",
-        },
-        {
-            'timestamp': "10-10-2021",
-            'level': 1,
-            'message': "test",
-        },
-        {
-            'timestamp': "10-10-2021",
-            'level': 1,
-            'message': "test",
-        },
-    ]
+    # Fetch all log entries
+    logs = LogEntry.objects.all().values()
     context = {
         'logs': logs,
     }
