@@ -46,21 +46,39 @@ class Coordinator():
                 entry = LogEntry(event="RFIDEvent", message="Scanned Chip ID: {}".format(chipId))
                 entry.save()
                 
+                from .models import UserWithAccess
+
+                # Get users and look for a match
+                users = UsersWithAccess.objects.all()
+                foundUser = None
+                for u in users:
+                    if u.chip_indentifier == chipId:
+                        foundUser = u
+                
                 # If unknown card, show access denied
+                if foundUser == None:
+                    # Add to log
+                    unknownUserLogEntry = LogEntry(event="RFIDEvent", message="Unknown chip!")
+                    unknownUserLogEntry.save()
+                    
+                    # TODO: SHOW ACCESS DENIED
                 
                 # If known card, initiate code checking
-#                try:
-                    #while True:
-                    #    if not self.keypad_handler.keysQueue.empty():
-                    #        key = self.keypad_handler.keysQueue.get()
-                    #        print(f"Got key: {key}")
-                    #        self.keypad_handler.keysQueue.task_done()
+                else:
+                    knownUserLogEntry = LogEntry(event="RFIDEvent", message="Known user: {} {} Phone: {}".format(foundUser.first_name, foundUser.last_name, foundUser.phone))
+                    knownUserLogEntry.save()
 
-#                except Exception as e:
-#                    print(f"An error occurred: {e}")
-#                    traceback.print_exc()
-#                    print("FATAL: Coordinator no longer running.")
-#                    sys.exit
+                    try:
+                        while True:
+                            self.keypad_handler.CheckForInput()
+                            if self.keypad_handler.keysQueue.qsize == 4:
+                                print(list(self.keypad_handler.keysQueue))
+
+                    except Exception as e:
+                        print(f"An error occurred: {e}")
+                        traceback.print_exc()
+                        print("FATAL: Coordinator no longer running.")
+                        sys.exit
 
 
 ############################
@@ -94,25 +112,30 @@ class KeypadHandler():
         # Initialize the keypad
         self.keypad = adafruit_matrixkeypad.Matrix_Keypad(self.rows, self.cols, self.keysMatrix)
         
-        # Send keys through queue to django main thread.
-        self.keysQueue = queue.Queue(maxsize=16)
+        # Store keys
+        self.keysQueue = queue.Queue(maxsize=4)
 
         # Keep track of pressed keys
         self.pressed_keys = []
 
     def CheckForInput(self):
         time.sleep(0.1)
+
         # Check for key presses
         current_keys = self.keypad.pressed_keys
+        
         #print("Raw from keypad: ", current_keys)
         
-        if pressed_keys: # Key is held pressed
+        # If we have a current key held down
+        if self.pressed_keys: # Key is held pressed
             if not current_keys: # Key press released
-                # Put the keys pressed into the queue only if there is a new key press 
-                self.keysQueue.put(pressed_keys)
+                # Put keys in queue
+                self.keysQueue.put(self.pressed_keys)
+
                 # Reset pressed_keys
                 self.pressed_keys = []
-
+        
+        # If new key is pressed
         if current_keys:
             self.pressed_keys = current_keys
             #print("Key Pressed: ", current_keys)
