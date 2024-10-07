@@ -49,7 +49,7 @@ class Coordinator():
                 from .models import UserWithAccess
 
                 # Get users and look for a match
-                users = UsersWithAccess.objects.all()
+                users = UserWithAccess.objects.all()
                 foundUser = None
                 for u in users:
                     if u.chip_indentifier == chipId:

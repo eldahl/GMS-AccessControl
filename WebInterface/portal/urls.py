@@ -5,4 +5,5 @@ urlpatterns = [
     path('portal/', views.portal, name='portal'),
     path('logs/', views.logs, name='logs'),
     path('keypad/', views.keypad_ws, name='keypad_ws'),
+    path('manage-users/', views.manage_users, name='manage_users'),
 ]
