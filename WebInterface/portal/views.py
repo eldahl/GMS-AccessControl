@@ -46,6 +46,16 @@ def manage_users(request):
 
     return render(request, 'manage_users.html', {'users': users})
 
+def delete_user(request, user_id):
+    if request.method == 'GET':
+        print("GET")
+    else:
+        print("Something else")
+
+    print(user_id)
+
+    return render(request, 'deleted_user.html')
+
 def logs(request):
     template = loader.get_template('logs.html')
 

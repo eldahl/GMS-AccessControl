@@ -174,9 +174,8 @@
 		    <td>{{ user.phone }}</td>
 		    <td>{{ user.chip_identifier }}</td>
 		    <td>{{ user.pass_code }}</td>
-		    <td>
-			    <button onclick="editUser({{ user.id }})">Edit</button> |
-			    <button onclick="deleteUser({{ user.id }})">Delete</button>
+		    <td class="actions">
+			    <a href="{% url 'delete_user' user.id %}">Delete</a>
 		    </td>
 		</tr>
 		{% empty %}
@@ -187,42 +186,6 @@
 	    </tbody>
 	</table>
     </div>
-
-    <script>
-        const userTable = document.getElementById('userTable').querySelector('tbody');
-        const addUserForm = document.getElementById('addUserForm');
-
-        // Add new user
-        addUserForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const username = document.getElementById('username').value;
-            const email = document.getElementById('email').value;
-            users.push({ username, email });
-            renderUserTable();
-            addUserForm.reset();
-	    this.submit();
-        });
-
-        // Edit user
-        function editUser(index) {
-            const username = prompt("Edit username:", users[index].username);
-            const email = prompt("Edit email:", users[index].email);
-            if (username !== null && email !== null) {
-                users[index].username = username;
-                users[index].email = email;
-                renderUserTable();
-            }
-        }
-
-        // Delete user
-        function deleteUser(index) {
-            users.splice(index, 1);
-            renderUserTable();
-        }
-
-        // Initial rendering of user table
-        renderUserTable();
-    </script>
 </body>
 
 </html>

@@ -31,6 +31,16 @@ class Coordinator():
         self.coordinator_thread.start()
         print("Started Coordinator thread...")
 
+    # Provided by ChatGPT :^)
+    def decimal_list_to_hex(self, decimal_list):
+        # Convert each decimal value to its corresponding 2-digit hexadecimal representation
+        hex_string = ''.join([format(val, '02X') for val in decimal_list])
+        
+        # Convert the hex string to a byte string
+        byte_string = hex_string.encode('utf-8')
+        
+        return byte_string
+
     def coordinator_entry(self):
         
         while True:
@@ -38,7 +48,10 @@ class Coordinator():
                 break
 
         while True:
-            (successRead, chipId) = self.rfid_handler.CheckForAccess()
+            (successRead, chipIdList) = self.rfid_handler.CheckForAccess()           
+            
+            # Convert to binary string from list
+            chipId = self.decimal_list_to_hex(chipIdList)
 
             if successRead:
                 # Add to log
@@ -52,7 +65,7 @@ class Coordinator():
                 users = UserWithAccess.objects.all()
                 foundUser = None
                 for u in users:
-                    if u.chip_indentifier == chipId:
+                    if u.chip_identifier == chipId:
                         foundUser = u
                 
                 # If unknown card, show access denied
@@ -62,9 +75,11 @@ class Coordinator():
                     unknownUserLogEntry.save()
                     
                     # TODO: SHOW ACCESS DENIED
+                    print("Access denied")
                 
                 # If known card, initiate code checking
                 else:
+                    print("Access granted")
                     knownUserLogEntry = LogEntry(event="RFIDEvent", message="Known user: {} {} Phone: {}".format(foundUser.first_name, foundUser.last_name, foundUser.phone))
                     knownUserLogEntry.save()
 
@@ -131,7 +146,7 @@ class KeypadHandler():
             if not current_keys: # Key press released
                 # Put keys in queue
                 self.keysQueue.put(self.pressed_keys)
-
+                print(self.pressed_keys)
                 # Reset pressed_keys
                 self.pressed_keys = []
         
