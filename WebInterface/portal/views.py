@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.template import loader
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.sessions.models import Session
 
 from .models import UserWithAccess
 from .models import LogEntry
@@ -14,12 +16,41 @@ def portal(request):
     }
     return HttpResponse(template.render(context, request));
 
-def addLog(request):
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        print(user)
+        if user is not None:
+            login(request, user)
+            # set user-specific data in the session
+            request.session['username'] = username
+            request.session.save()
+            return redirect('home')
+        else:
+            # Handle invalid login
+            return render(request, 'login.html', { 'error': 'Invalid login.' })
+    
+    return render(request, 'login.html')
 
-    return HttpResponse();
+def logout_view(request):
+    logout(request)
+    # Clear the user's session data
+    Session.objects.filter(session_key=request.session.session_key).delete()
+    return redirect('login')
+
+def checkForAuth(request):
+    if request.user.is_authenticated:
+        return True
+    else:
+        return False
 
 # View for managing users
 def manage_users(request):
+    if checkForAuth(request) is not True:
+        return redirect('login')
+
     if request.method == 'POST':
         print("Post")
         # Collect form data
