@@ -8,14 +8,6 @@ from django.contrib.sessions.models import Session
 from .models import UserWithAccess
 from .models import LogEntry
 
-def portal(request):
-    template = loader.get_template('test.html')
-    testVar = "Phillip Dupont"
-    context = {
-        'testVar': testVar,
-    }
-    return HttpResponse(template.render(context, request));
-
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -23,6 +15,11 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
+            
+            # Add login to logs
+            loginEntry = LogEntry(event="Admin Event", message="Admin logged in! User: {}".format(user.username))
+            loginEntry.save()
+
             # set user-specific data in the session
             request.session['username'] = username
             request.session.save()
@@ -34,9 +31,15 @@ def login_view(request):
     return render(request, 'login.html')
 
 def logout_view(request):
+
+    # Add login to logs
+    loginEntry = LogEntry(event="Admin Event", message="Admin logged out! User: {}".format(request.session['username']))
+    loginEntry.save()
+    
     logout(request)
     # Clear the user's session data
     Session.objects.filter(session_key=request.session.session_key).delete()
+
     return redirect('login')
 
 def checkForAuth(request):

@@ -17,6 +17,8 @@ class KeyboardThread(threading.Thread):
 def my_callback(inp):
     if inp == 'o':
         serialport.write(b'o')
+    elif inp == 'i':
+        serialport.write(b'i')
 
 #start the Keyboard thread
 kthread = KeyboardThread(my_callback)

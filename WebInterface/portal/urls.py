@@ -2,7 +2,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('portal/', views.portal, name='portal'),
     path('keypad/', views.keypad_ws, name='keypad_ws'),
     path('logs/', views.logs, name='logs'),
     path('manage-users/', views.manage_users, name='manage_users'),

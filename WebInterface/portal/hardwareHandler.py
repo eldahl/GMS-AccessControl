@@ -55,7 +55,7 @@ class Coordinator():
             if successRead:
                 # Add to log
                 from .models import LogEntry
-                entry = LogEntry(event="RFIDEvent", message="Scanned Chip ID: {}".format(chipId))
+                entry = LogEntry(event="RFID Event", message="Scanned Chip ID: {}".format(chipId))
                 entry.save()
                 
                 from .models import UserWithAccess
@@ -70,7 +70,7 @@ class Coordinator():
                 # If unknown card, show access denied
                 if foundUser == None:
                     # Add to log
-                    unknownUserLogEntry = LogEntry(event="RFIDEvent", message="Unknown chip!")
+                    unknownUserLogEntry = LogEntry(event="RFID Event", message="Unknown chip!")
                     unknownUserLogEntry.save()
                     
                     # TODO: SHOW ACCESS DENIED
@@ -79,7 +79,7 @@ class Coordinator():
                 # If known card, initiate code checking
                 else:
                     print("Known chip!")
-                    knownUserLogEntry = LogEntry(event="RFIDEvent", message="Known user: {} {} Phone: {}".format(foundUser.first_name, foundUser.last_name, foundUser.phone))
+                    knownUserLogEntry = LogEntry(event="RFID Event", message="Known user: {} {} Phone: {}".format(foundUser.first_name, foundUser.last_name, foundUser.phone))
                     knownUserLogEntry.save()
 
                     listOfKeys = []
@@ -99,15 +99,15 @@ class Coordinator():
                     input_pass = ''.join(listOfKeys)
 
                     # Save inputted code to log
-                    inputEntry = LogEntry(event="PINEvent", message="PIN entered: {}".format(input_pass))
+                    inputEntry = LogEntry(event="PIN Event", message="PIN entered: {}".format(input_pass))
                     inputEntry.save()
                     
                     if foundUser.pass_code == input_pass:
-                        agEntry = LogEntry(event="PINEvent", message="Access granted!")
+                        agEntry = LogEntry(event="PIN Event", message="Access granted!")
                         agEntry.save()
                         print("Access granted!")
                     else:
-                        adEntry = LogEntry(event="PINEvent", message="Wrong PIN code!")
+                        adEntry = LogEntry(event="PIN Event", message="Wrong PIN code!")
                         adEntry.save()
                         print("Wrong pass code!")
 
