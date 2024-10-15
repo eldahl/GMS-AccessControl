@@ -21,13 +21,12 @@ def login_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
-        print(user)
         if user is not None:
             login(request, user)
             # set user-specific data in the session
             request.session['username'] = username
             request.session.save()
-            return redirect('home')
+            return redirect('manage_users')
         else:
             # Handle invalid login
             return render(request, 'login.html', { 'error': 'Invalid login.' })
@@ -52,12 +51,14 @@ def manage_users(request):
         return redirect('login')
 
     if request.method == 'POST':
-        print("Post")
         # Collect form data
         first_name = request.POST['first_name']
         last_name = request.POST['last_name']
         phone = request.POST['phone']
         chip_identifier = request.POST['chip_identifier']
+        # Remove binary notation and encode
+        if chip_identifier.startswith('b'):
+            chip_identifier = chip_identifier[2:-1].encode()
         pass_code = request.POST['pass_code']
 
         # Create new user with form data
@@ -77,13 +78,42 @@ def manage_users(request):
 
     return render(request, 'manage_users.html', {'users': users})
 
-def delete_user(request, user_id):
+def update_user(request):
+    if checkForAuth(request) is not True:
+        return redirect('login')
+    
     if request.method == 'GET':
-        print("GET")
-    else:
-        print("Something else")
+        # Collect form data
+        user_id = request.GET.get('user_id')
+        first_name = request.GET.get('first_name')
+        last_name = request.GET.get('last_name')
+        phone = request.GET.get('phone')
+        chip_identifier = request.GET.get('chip_identifier')
+        # Remove binary notation and encode
+        if chip_identifier.startswith('b'):
+            chip_identifier = chip_identifier[2:-1].encode()
+        pass_code = request.GET.get('pass_code')
+        
+        # Get user
+        user = UserWithAccess.objects.filter(id=user_id).get()
+        
+        # Update fields
+        user.first_name = first_name
+        user.last_name = last_name
+        user.phone = phone
+        user.chip_identifier = chip_identifier
+        user.pass_code = pass_code
+        
+        # Save
+        user.save()
 
-    print(user_id)
+    return redirect('manage_users')
+
+def delete_user(request, user_id):
+    if checkForAuth(request) is not True:
+        return redirect('login')
+    
+    UserWithAccess.objects.filter(id=user_id).delete()
 
     return render(request, 'deleted_user.html')
 
@@ -91,7 +121,7 @@ def logs(request):
     template = loader.get_template('logs.html')
 
     # Fetch all log entries
-    logs = LogEntry.objects.all().values()
+    logs = LogEntry.objects.order_by('-timestamp')[:1000].values()
     context = {
         'logs': logs,
     }

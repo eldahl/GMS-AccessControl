@@ -121,10 +121,106 @@
                 width: 100%;
             }
         }
+	.navbar {
+		display: flex;
+		justify-content: space-between;
+		background-color: #333;
+		padding: 1rem;
+		align-items: center;
+	}
+
+	.navbar a {
+		color: white;
+		text-decoration: none;
+		padding: 0.5rem 1rem;
+		font-size: 1.1rem;
+	}
+
+	.navbar a:hover {
+		background-color: #575757;
+		border-radius: 5px;
+	}
+
+	.navbar .nav-links {
+		display: flex;
+		gap: 1rem;
+	}
+
+	.navbar .user-menu {
+		position: relative;
+		display: inline-block;
+	}
+
+	.navbar .user-icon {
+		cursor: pointer;
+		padding: 0.5rem;
+		background-color: #444;
+		border-radius: 50%;
+	}
+
+	.navbar .dropdown {
+		display: none;
+		position: absolute;
+		right: 0;
+		background-color: white;
+		min-width: 120px;
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+		border-radius: 5px;
+		z-index: 1;
+	}
+
+	.navbar .dropdown a {
+		color: black;
+		padding: 0.8rem;
+		display: block;
+		text-decoration: none;
+	}
+
+	.navbar .dropdown a:hover {
+		background-color: #f1f1f1;
+	}
+
     </style>
 </head>
 
 <body>
+
+  <nav class="navbar">
+    <div class="nav-links">
+      <a href="/logs">Logs</a>
+      <a href="/manage-users">Users</a>
+    </div>
+
+    <div class="user-menu">
+      <div class="user-icon" onclick="toggleDropdown()">&#128100;</div>
+      <div id="dropdown" class="dropdown">
+        <a href="/profile">Profile</a>
+        <a href="/logout-view">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <script>
+    function toggleDropdown() {
+      var dropdown = document.getElementById('dropdown');
+      if (dropdown.style.display === 'block') {
+        dropdown.style.display = 'none';
+      } else {
+        dropdown.style.display = 'block';
+      }
+    }
+
+    // Close the dropdown if clicked outside
+    window.onclick = function(event) {
+      if (!event.target.matches('.user-icon')) {
+        var dropdown = document.getElementById('dropdown');
+        if (dropdown.style.display === 'block') {
+          dropdown.style.display = 'none';
+        }
+      }
+    }
+  </script>
+
     <h1>Manage Users</h1>
 
     <div class="container">
@@ -142,7 +238,7 @@
 		<label for="phone">Phone:</label>
 		<input type="text" id="phone" name="phone" placeholder="Enter phone number" required><br><br>
 
-		<label for="chip_identifier">Chip Identifier (Binary/Hex):</label>
+		<label for="chip_identifier">Chip Identifier (Binary/Hex | with or without b'X..X'):</label>
 		<input type="text" id="chip_identifier" name="chip_identifier" placeholder="Enter chip identifier" required><br><br>
 
 		<label for="pass_code">Pass Code:</label>
@@ -169,12 +265,13 @@
 	    <tbody>
 		{% for user in users %}
 		<tr>
-		    <td>{{ user.first_name }}</td>
-		    <td>{{ user.last_name }}</td>
-		    <td>{{ user.phone }}</td>
-		    <td>{{ user.chip_identifier }}</td>
-		    <td>{{ user.pass_code }}</td>
-		    <td class="actions">
+		    <td contenteditable="true" id="{{ user.id }}-first_name">{{ user.first_name }}</td>
+		    <td contenteditable="true" id="{{ user.id }}-last_name">{{ user.last_name }}</td>
+		    <td contenteditable="true" id="{{ user.id }}-phone">{{ user.phone }}</td>
+		    <td contenteditable="true" id="{{ user.id }}-chip_identifier">{{ user.chip_identifier }}</td>
+		    <td contenteditable="true" id="{{ user.id }}-pass_code">{{ user.pass_code }}</td>
+		    <td class="actions">		    
+			    <a href="#" onclick="UpdateRedirect({{ user.id }});return false;">Update</a>
 			    <a href="{% url 'delete_user' user.id %}">Delete</a>
 		    </td>
 		</tr>
@@ -186,6 +283,14 @@
 	    </tbody>
 	</table>
     </div>
+
+    	<script>
+		function e(val) { return encodeURIComponent(val); }
+		function t(elem) { return document.getElementById(elem).innerText}
+		function UpdateRedirect(user_id) { 
+			window.location.href = '/update-user?user_id=' + user_id + '&first_name=' + e(t(user_id + "-first_name")) + '&last_name=' + e(t(user_id + "-last_name")) + '&phone=' + e(t(user_id + "-phone")) + '&chip_identifier=' + e(t(user_id + "-chip_identifier")) + '&pass_code=' + e(t(user_id + "-pass_code"));
+		}
+	</script>
 </body>
 
 </html>
