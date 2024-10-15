@@ -1,7 +1,6 @@
 import signal
 import time
 import os
-import queue
 import board
 import digitalio
 import adafruit_matrixkeypad
@@ -75,26 +74,42 @@ class Coordinator():
                     unknownUserLogEntry.save()
                     
                     # TODO: SHOW ACCESS DENIED
-                    print("Access denied")
+                    print("Unknown chip!")
                 
                 # If known card, initiate code checking
                 else:
-                    print("Access granted")
+                    print("Known chip!")
                     knownUserLogEntry = LogEntry(event="RFIDEvent", message="Known user: {} {} Phone: {}".format(foundUser.first_name, foundUser.last_name, foundUser.phone))
                     knownUserLogEntry.save()
 
-                    try:
-                        while True:
-                            self.keypad_handler.CheckForInput()
-                            if self.keypad_handler.keysQueue.qsize == 4:
-                                print(list(self.keypad_handler.keysQueue))
+                    listOfKeys = []
+                    while True:
+                        # Get keys
+                        keys = self.keypad_handler.CheckForInput()
+                        if keys is not None and len(keys) == 1:
+                            # Aggregate keys
+                            listOfKeys.append(keys[0])   
+                            # 4 keys? We're done here.
+                            if len(listOfKeys) == 4:
+                                break
 
-                    except Exception as e:
-                        print(f"An error occurred: {e}")
-                        traceback.print_exc()
-                        print("FATAL: Coordinator no longer running.")
-                        sys.exit
+                    print(listOfKeys)
+                    
+                    # convert to string
+                    input_pass = ''.join(listOfKeys)
 
+                    # Save inputted code to log
+                    inputEntry = LogEntry(event="PINEvent", message="PIN entered: {}".format(input_pass))
+                    inputEntry.save()
+                    
+                    if foundUser.pass_code == input_pass:
+                        agEntry = LogEntry(event="PINEvent", message="Access granted!")
+                        agEntry.save()
+                        print("Access granted!")
+                    else:
+                        adEntry = LogEntry(event="PINEvent", message="Wrong PIN code!")
+                        adEntry.save()
+                        print("Wrong pass code!")
 
 ############################
 #   Keypad to RPi pinput   #
@@ -127,14 +142,11 @@ class KeypadHandler():
         # Initialize the keypad
         self.keypad = adafruit_matrixkeypad.Matrix_Keypad(self.rows, self.cols, self.keysMatrix)
         
-        # Store keys
-        self.keysQueue = queue.Queue(maxsize=4)
-
         # Keep track of pressed keys
         self.pressed_keys = []
 
     def CheckForInput(self):
-        time.sleep(0.1)
+        time.sleep(0.025)
 
         # Check for key presses
         current_keys = self.keypad.pressed_keys
@@ -144,11 +156,11 @@ class KeypadHandler():
         # If we have a current key held down
         if self.pressed_keys: # Key is held pressed
             if not current_keys: # Key press released
-                # Put keys in queue
-                self.keysQueue.put(self.pressed_keys)
-                print(self.pressed_keys)
+                # Temp
+                returnKeys = self.pressed_keys
                 # Reset pressed_keys
                 self.pressed_keys = []
+                return returnKeys
         
         # If new key is pressed
         if current_keys:
