@@ -14,6 +14,26 @@ It features an RFID chip reader and a keypad for inputting access codes.
 MFRC522 RFID Module  
 [https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/5531/4411_CN0090%20other%20related%20document%20%281%29.pdf](https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/5531/4411_CN0090%20other%20related%20document%20%281%29.pdf)
 
+# Install
+Setup python virtual environment:	
+Run `python -m venv WIenv` from the same directory as this readme.
+
+Activate virtual environment:
+`source WIenv/bin/activate`
+
+Install Django:
+`pip install django`.
+
+Install Daphne:
+`pip install daphne`
+
+Install Channels:
+`pip install channels`
+
+# Usage
+Follow Django usage patterns, by running commands with `python manage.py`.
+Run development server with `daphne -b 0.0.0.0 -p 8000 WebInterface.asgi:application` 
+
 # UI Showcase
 <p align="center">
   <img src="img/login.png" alt="Login page"/>
@@ -24,3 +44,6 @@ MFRC522 RFID Module
 <p align="center">
   <img src="img/logs.png" alt="Logs page"/>
 </p>  
+
+# Credits
+Made by Esben Christensen (eldahl) for Green Makerspace / Vedvarende Energi
