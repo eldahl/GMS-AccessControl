@@ -16,19 +16,16 @@ MFRC522 RFID Module
 
 # Install
 Setup python virtual environment:	
-Run `python -m venv WIenv` from the same directory as this readme.
-
+Run `python -m venv WIenv` from the same directory as this readme.  
 Activate virtual environment:
 `source WIenv/bin/activate`
 
 Install Django:
-`pip install django`.
-
+`pip install django`  
 Install Daphne:
-`pip install daphne`
-
+`pip install daphne`  
 Install Channels:
-`pip install channels`
+`pip install channels`  
 
 # Usage
 Follow Django usage patterns, by running commands with `python manage.py`.
