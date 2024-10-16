@@ -7,6 +7,13 @@ It features an RFID chip reader and a keypad for inputting access codes.
   <img src="img/diagram.png" alt="System diagram"/>
 </p> 
 
+## Datasheets
+84LS Keypad  
+[https://www.digikey.com.mx/htmldatasheets/production/868043/0/0/1/84LS-Series-Datasheet.pdf](https://www.digikey.com.mx/htmldatasheets/production/868043/0/0/1/84LS-Series-Datasheet.pdf)
+
+MFRC522 RFID Module  
+[https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/5531/4411_CN0090%20other%20related%20document%20%281%29.pdf](https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/5531/4411_CN0090%20other%20related%20document%20%281%29.pdf)
+
 # UI Showcase
 <p align="center">
   <img src="img/login.png" alt="Login page"/>
