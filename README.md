@@ -24,8 +24,8 @@ Install Django, Daphne, Channels:
 `pip install django daphne channels`  
 
 # Usage
-Follow Django usage patterns, by running commands with `python manage.py`.
-Run development server with `daphne -b 0.0.0.0 -p 8000 WebInterface.asgi:application` 
+Follow Django usage patterns, by running commands with `python manage.py`.  
+Run development server with `daphne -b 0.0.0.0 -p 8000 WebInterface.asgi:application` for testing on LAN devices.
 
 # UI Showcase
 <p align="center">
