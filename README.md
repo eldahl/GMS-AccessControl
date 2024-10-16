@@ -20,12 +20,8 @@ Run `python -m venv WIenv` from the same directory as this readme.
 Activate virtual environment:
 `source WIenv/bin/activate`
 
-Install Django:
-`pip install django`  
-Install Daphne:
-`pip install daphne`  
-Install Channels:
-`pip install channels`  
+Install Django, Daphne, Channels:
+`pip install django daphne channels`  
 
 # Usage
 Follow Django usage patterns, by running commands with `python manage.py`.
