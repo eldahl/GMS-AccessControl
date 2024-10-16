@@ -14,6 +14,12 @@
             padding: 0;
         }
 
+	a {
+		font-family: Arial, sans-serif;
+		color: white;
+		text-decoration: none;
+	}
+
         h1 {
             text-align: center;
             margin-top: 30px;
@@ -94,7 +100,7 @@
             background-color: #fff;
         }
 
-        .actions button {
+        .actions a {
             margin-right: 5px;
             background-color: #f44336;
             padding: 8px 16px;
@@ -102,11 +108,11 @@
             cursor: pointer;
         }
 
-        .actions button.edit {
+        .actions a.updateButton {
             background-color: #008CBA;
         }
 
-        .actions button:hover {
+        .actions a:hover {
             opacity: 0.8;
         }
 
@@ -271,8 +277,8 @@
 		    <td contenteditable="true" id="{{ user.id }}-chip_identifier">{{ user.chip_identifier }}</td>
 		    <td contenteditable="true" id="{{ user.id }}-pass_code">{{ user.pass_code }}</td>
 		    <td class="actions">		    
-			    <a href="#" onclick="UpdateRedirect({{ user.id }});return false;">Update</a>
-			    <a href="{% url 'delete_user' user.id %}">Delete</a>
+			    <a class="updateButton" href="#" onclick="UpdateRedirect({{ user.id }});return false;">Update</a>
+			    <a class="deleteButton" href="{% url 'delete_user' user.id %}">Delete</a>
 		    </td>
 		</tr>
 		{% empty %}
