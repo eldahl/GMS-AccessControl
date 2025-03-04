@@ -27,6 +27,9 @@ Install Django, Daphne, Channels:
 Follow Django usage patterns, by running commands with `python manage.py`.  
 Run development server with `daphne -b 0.0.0.0 -p 8000 WebInterface.asgi:application` for testing on LAN devices.
 
+Note: It is necessary to setup a Django admin user for initial user creation.  
+See: https://www.w3schools.com/django/django_admin_create_user.php
+
 # UI Showcase
 <p align="center">
   <img src="img/login.png" alt="Login page"/>
