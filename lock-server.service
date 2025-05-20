@@ -1,0 +1,13 @@
+[Unit]
+Description=Lock Server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/pi/GMS-accesscontrol/startup.sh
+Restart=on-failure
+RestartSec=5
+Environment=PATH=/home/pi/GMS-accesscontrol:/usr/bin:/bin
+
+[Install]
+WantedBy=default.target

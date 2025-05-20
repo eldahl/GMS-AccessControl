@@ -8,6 +8,9 @@ from django.contrib.sessions.models import Session
 from .models import UserWithAccess
 from .models import LogEntry
 
+def root_redirect(request):
+    return redirect('login')
+
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')

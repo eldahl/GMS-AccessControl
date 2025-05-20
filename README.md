@@ -20,8 +20,8 @@ Run `python -m venv WIenv` from the same directory as this readme.
 Activate virtual environment:
 `source WIenv/bin/activate`
 
-Install Django, Daphne, Channels:
-`pip install django daphne channels`  
+Install Django, Daphne, Channels, board, mfrc522, adafruit-circuitpython-matrixkeypad:
+`pip install django daphne channels board mfrc522 adafruit-circuitpython-matrixkeypad`  
 
 # Usage
 Follow Django usage patterns, by running commands with `python manage.py`.  

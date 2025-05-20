@@ -8,6 +8,7 @@ import traceback
 import sys
 import threading
 import RPi.GPIO as GPIO
+import serial
 
 from mfrc522 import MFRC522
 from django.db import connection
@@ -25,6 +26,11 @@ class Coordinator():
 
         self.keypad_handler = KeypadHandler()
         self.rfid_handler = RfidHandler()
+        self.serialCon = serial.Serial(
+                port="/dev/ttyUSB0",
+                baudrate=9600,
+                timeout=1
+        )
         
         self.coordinator_thread = threading.Thread(target=self.coordinator_entry, daemon=True)
         self.coordinator_thread.start()
@@ -105,6 +111,7 @@ class Coordinator():
                     if foundUser.pass_code == input_pass:
                         agEntry = LogEntry(event="PIN Event", message="Access granted!")
                         agEntry.save()
+                        self.serialCon.write(b"o\n")
                         print("Access granted!")
                     else:
                         adEntry = LogEntry(event="PIN Event", message="Wrong PIN code!")
