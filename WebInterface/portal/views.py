@@ -15,41 +15,46 @@ def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+        # Try Django superuser authentication first
+        from django.contrib.auth import authenticate, login as auth_login
         user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            
-            # Add login to logs
-            loginEntry = LogEntry(event="Admin Event", message="Admin logged in! User: {}".format(user.username))
+        if user is not None and user.is_superuser:
+            auth_login(request, user)
+            loginEntry = LogEntry(event="Admin Event", message=f"Superuser logged in! User: {user.username}")
             loginEntry.save()
-
-            # set user-specific data in the session
             request.session['username'] = username
+            request.session['user_id'] = user.id
+            request.session['is_superuser'] = True
             request.session.save()
             return redirect('manage_users')
-        else:
-            # Handle invalid login
+        # Fallback to UserWithAccess authentication
+        try:
+            user = UserWithAccess.objects.get(username=username)
+            if user.pass_code == password:
+                loginEntry = LogEntry(event="Admin Event", message=f"Admin logged in! User: {user.username}")
+                loginEntry.save()
+                request.session['username'] = username
+                request.session['user_id'] = user.id
+                request.session['is_superuser'] = False
+                request.session.save()
+                return redirect('manage_users')
+            else:
+                return render(request, 'login.html', { 'error': 'Invalid login.' })
+        except UserWithAccess.DoesNotExist:
             return render(request, 'login.html', { 'error': 'Invalid login.' })
-    
     return render(request, 'login.html')
 
 def logout_view(request):
-
     # Add login to logs
-    loginEntry = LogEntry(event="Admin Event", message="Admin logged out! User: {}".format(request.session['username']))
+    username = request.session.get('username', 'Unknown')
+    loginEntry = LogEntry(event="Admin Event", message=f"Admin logged out! User: {username}")
     loginEntry.save()
-    
-    logout(request)
     # Clear the user's session data
-    Session.objects.filter(session_key=request.session.session_key).delete()
-
+    request.session.flush()
     return redirect('login')
 
 def checkForAuth(request):
-    if request.user.is_authenticated:
-        return True
-    else:
-        return False
+    return 'username' in request.session
 
 # View for managing users
 def manage_users(request):
@@ -66,6 +71,7 @@ def manage_users(request):
         if chip_identifier.startswith('b'):
             chip_identifier = chip_identifier[2:-1].encode()
         pass_code = request.POST['pass_code']
+        username = request.POST['username']
 
         # Create new user with form data
         new_user = UserWithAccess(
@@ -73,7 +79,8 @@ def manage_users(request):
             last_name=last_name,
             phone=phone,
             chip_identifier=chip_identifier.encode(),  # Encode binary field
-            pass_code=pass_code
+            pass_code=pass_code,
+            username=username
         )
         new_user.save()
 
@@ -99,6 +106,7 @@ def update_user(request):
         if chip_identifier.startswith('b'):
             chip_identifier = chip_identifier[2:-1].encode()
         pass_code = request.GET.get('pass_code')
+        username = request.GET.get('username')
         
         # Get user
         user = UserWithAccess.objects.filter(id=user_id).get()
@@ -109,6 +117,7 @@ def update_user(request):
         user.phone = phone
         user.chip_identifier = chip_identifier
         user.pass_code = pass_code
+        user.username = username
         
         # Save
         user.save()
@@ -139,3 +148,18 @@ def keypad_ws(request):
     template = loader.get_template('keypad.html')
     context = {}
     return HttpResponse(template.render(context, request));
+
+def open_lock(request):
+    if not checkForAuth(request):
+        return redirect('login')
+    # Import Coordinator and open the lock
+    from . import hardwareHandler
+    if hasattr(hardwareHandler, 'apps') and hasattr(hardwareHandler.apps, 'coordinator'):
+        coordinator = hardwareHandler.apps.coordinator
+        if hasattr(coordinator, 'serialCon'):
+            coordinator.serialCon.write(b"o\n")
+            LogEntry.objects.create(event="Manual Unlock", message=f"Lock opened by {request.session.get('username', 'Unknown')}")
+            return HttpResponse("Lock opened!")
+    # Fallback: just log the event
+    LogEntry.objects.create(event="Manual Unlock", message=f"Lock open attempted by {request.session.get('username', 'Unknown')}")
+    return HttpResponse("Lock open attempted (hardware not available)")

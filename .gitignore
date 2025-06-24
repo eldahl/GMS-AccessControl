@@ -3,8 +3,11 @@
 __pycache__
 
 # Virtual environements
+env/
 venv/
 WebInterface/WIenv
+
+migrations
 
 # Web Interface
 db.sqlite3
